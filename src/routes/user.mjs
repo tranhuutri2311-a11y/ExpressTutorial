@@ -51,7 +51,7 @@ router.post("/api/users",checkSchema(createUserValidationSchema),
         }
     
 })
-router.get("/api/users/:id", middleware.resolveIndexByUserId, async (req, res) => {
+router.get("/api/users/:id", async (req, res) => {
     const {id} = req.params;
     const findUser = await User.findOne({_id : id});
     if(!findUser) return res.status(404).send("User not found");
@@ -63,7 +63,7 @@ router.put("/api/users/:id",
     body("email").isEmail().withMessage("Must be a valid email address"),
     middleware.handleValidationErrors,
     async (req,res)=>{
-    const {body,id} = req;
+    const {body, params: {id}} = req;
     const updatedUser = await User.findByIdAndUpdate(id, body, {new : true});
     if(!updatedUser) return res.status(404).send("User not found");
     return res.status(200).send(updatedUser);
@@ -71,20 +71,19 @@ router.put("/api/users/:id",
 
 
 router.patch("/api/users/:id", 
-    middleware.resolveIndexByUserId,
     body("username").optional().isString().notEmpty().withMessage("Username must be a string if provided"),
     body("email").optional().isEmail().withMessage("Must be a valid email address if provided"),
     middleware.handleValidationErrors,
     async (req,res)=>{
-    const{body,id} = req;
+    const{body, params: {id}} = req;
     const findUser = await User.findOne({_id : id});
     if(!findUser) return res.status(404).send("User not found");
     const updatedUser = await User.findByIdAndUpdate(id, body, {new : true});
     if(!updatedUser) return res.status(404).send("User not found");
     return res.status(200).send(updatedUser);
 })
-router.delete("/api/users/:id",middleware.resolveIndexByUserId ,async (req,res)=>{
-    const {id} = req;
+router.delete("/api/users/:id", async (req,res)=>{
+    const {id} = req.params;
     const findUser = await User.findOne({_id : id});
     if(!findUser) return res.status(404).send("User not found");
     const deletedUser = await User.findByIdAndDelete(id);

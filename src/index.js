@@ -2,11 +2,10 @@ import express from "express";
 import { allRoutes } from "./routes/index.mjs";
 import cookieParser from "cookie-parser";
 import session from "express-session";
-import { mockUsers } from "./utils/constants.mjs";
 import passport from "passport";
-import "./strategies/local-strategies.mjs"
 import mongoose from "mongoose";
 import MongoStore from "connect-mongo";
+import "./strategies/discord-strategies.mjs"
 
 const app   = express();
 
@@ -19,6 +18,7 @@ app.use(session({
     saveUninitialized : false,
     resave : false,
     cookie : {maxAge : 600000},
+    // Session Store in MongoDB
     store : MongoStore.create({
         client : mongoose.connection.getClient()
     })
@@ -41,9 +41,13 @@ app.get('/',(req,res,next) => {
     res.cookie("avc", "abc",{maxAge : 6000000,signed : true});
     res.send("Hello World!");
 });
-
-
+app.get("/api/auth/discord",passport.authenticate("discord"));
+app.get("/api/auth/discord/redirect",passport.authenticate("discord"),(req,res)=>{
+    console.log(req.user);
+    res.status(200).send(req.user);
+})
 app.listen(port, () => {
 
     console.log(`Server is running on port ${port}`);
 });
+
